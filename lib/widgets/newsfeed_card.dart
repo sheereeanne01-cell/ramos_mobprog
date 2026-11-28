@@ -1,5 +1,5 @@
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:quiatchon_mobprog/constants.dart';
 import 'package:quiatchon_mobprog/widgets/custom_text.dart';
@@ -33,6 +33,7 @@ class NewsfeedCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // PROFILE HEADER
             Row(
               children: [
                 CircleAvatar(
@@ -45,39 +46,41 @@ class NewsfeedCard extends StatelessWidget {
                       : null,
                 ),
                 SizedBox(width: ScreenUtil().setWidth(10)),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      text: userName,
-                      fontSize: 15,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    Row(
-                      children: [
-                        CustomText(
-                          text: date,
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(width: 3),
-                        const Icon(
-                          Icons.public,
-                          color: Colors.grey,
-                          size: 15,
-                        ),
-                      ],
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        text: userName,
+                        fontSize: 15,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      Row(
+                        children: [
+                          CustomText(
+                            text: date,
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 3),
+                          const Icon(
+                            Icons.public,
+                            color: Colors.grey,
+                            size: 15,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                const Spacer(),
                 const Icon(Icons.more_horiz),
               ],
             ),
 
             SizedBox(height: ScreenUtil().setHeight(10)),
 
+            // POST CONTENT
             CustomText(
               text: postContent,
               fontSize: 12,
@@ -86,59 +89,80 @@ class NewsfeedCard extends StatelessWidget {
 
             SizedBox(height: ScreenUtil().setHeight(10)),
 
-            if (hasImage == true && postImage != null)
-              Image.asset(
-                postImage!,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+            // POST IMAGE
+            if (hasImage == true) _buildPostImage(),
 
+            // LIKE, COMMENT, SHARE BUTTONS
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                TextButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.thumb_up,
-                    color: fbPrimary,
-                  ),
-                  label: CustomText(
-                    text: numOfLikes.toString(),
-                    fontSize: 12,
-                    color: fbDarkPrimary,
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.thumb_up,
+                      size: 16,
+                      color: fbPrimary,
+                    ),
+                    label: CustomText(
+                      text: (numOfLikes ?? 0).toString(),
+                      fontSize: 11,
+                      color: fbDarkPrimary,
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                    ),
                   ),
                 ),
-                TextButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.comment,
-                    color: fbDarkPrimary,
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.comment,
+                      size: 16,
+                      color: fbDarkPrimary,
+                    ),
+                    label: const Text(
+                      'Comment',
+                      style: TextStyle(fontSize: 11),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                    ),
                   ),
-                  label: const Text('Comment'),
                 ),
-                TextButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.redo,
-                    color: fbDarkPrimary,
+                Expanded(
+                  child: TextButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.redo,
+                      size: 16,
+                      color: fbDarkPrimary,
+                    ),
+                    label: const Text(
+                      'Share',
+                      style: TextStyle(fontSize: 11),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                    ),
                   ),
-                  label: const Text('Share'),
                 ),
               ],
             ),
 
+            // COMMENT FIELD
             Row(
               children: [
                 const CircleAvatar(
                   radius: 15,
-                  backgroundImage: AssetImage('assets/images/meme.jpg'),
+                  backgroundImage: AssetImage(
+                    'assets/images/meme.jpg',
+                  ),
                 ),
                 SizedBox(width: ScreenUtil().setWidth(10)),
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     height: 30,
                     alignment: Alignment.centerLeft,
                     decoration: BoxDecoration(
@@ -168,6 +192,71 @@ class NewsfeedCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  // POST IMAGE LOADER
+  Widget _buildPostImage() {
+    if (postImage == null) {
+      return const SizedBox.shrink();
+    }
+
+    if (postImage!.startsWith('http')) {
+      return Image.network(
+        postImage!,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) {
+            return child;
+          }
+
+          return const SizedBox(
+            height: 200,
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: double.infinity,
+            height: 200,
+            color: Colors.grey[200],
+            alignment: Alignment.center,
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.broken_image,
+                  size: 40,
+                  color: Colors.grey,
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Unable to load image',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
+
+    return Image.asset(
+      postImage!,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return const SizedBox(
+          height: 200,
+          child: Center(
+            child: Icon(Icons.broken_image),
+          ),
+        );
+      },
     );
   }
 }
